@@ -62,6 +62,10 @@ public class WebMvcConfiguration extends WebMvcConfigurationSupport {
      * @param registry
      */
     protected void addResourceHandlers(ResourceHandlerRegistry registry) {
+        //classpath 实际上是一个“路径集合”，它包括：
+        //你自己的项目资源目录（如 src/main/resources）；
+        //所有你通过 Maven/Gradle 引入的 jar 包；这些 jar 包中所有的 META-INF/resources/、static/、public/ 等目录
+        //META-INF等其实是Knife4j的jar包的内容
         registry.addResourceHandler("/doc.html").addResourceLocations("classpath:/META-INF/resources/");
         registry.addResourceHandler("/webjars/**").addResourceLocations("classpath:/META-INF/resources/webjars/");
     }
