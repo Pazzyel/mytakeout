@@ -1,10 +1,13 @@
 package com.sky.config;
 
 import com.sky.interceptor.JwtTokenAdminInterceptor;
+import com.sky.json.JacksonObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.converter.HttpMessageConverter;
+import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurationSupport;
@@ -14,6 +17,8 @@ import springfox.documentation.builders.RequestHandlerSelectors;
 import springfox.documentation.service.ApiInfo;
 import springfox.documentation.spi.DocumentationType;
 import springfox.documentation.spring.web.plugins.Docket;
+
+import java.util.List;
 
 /**
  * 配置类，注册web层相关组件
@@ -68,5 +73,18 @@ public class WebMvcConfiguration extends WebMvcConfigurationSupport {
         //META-INF等其实是Knife4j的jar包的内容
         registry.addResourceHandler("/doc.html").addResourceLocations("classpath:/META-INF/resources/");
         registry.addResourceHandler("/webjars/**").addResourceLocations("classpath:/META-INF/resources/webjars/");
+    }
+
+    /**
+     * 扩展SpringMVC的消息转换器
+     * @param converters
+     */
+    protected void extendMessageConverters(List<HttpMessageConverter<?>> converters) {
+        log.info("扩展消息转换器");
+        MappingJackson2HttpMessageConverter converter = new MappingJackson2HttpMessageConverter();
+        //将消息转换器设置为对象转换器
+        converter.setObjectMapper(new JacksonObjectMapper());
+        //加入容器，0表示插入转换器容器的首位，优先级最高，优先使用自己定义的转换器
+        converters.add(0,converter);
     }
 }
