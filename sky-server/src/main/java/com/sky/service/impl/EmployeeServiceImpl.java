@@ -112,7 +112,7 @@ public class EmployeeServiceImpl implements EmployeeService {
     @Override
     public void startOrStop(Integer status, Long id) {
         //创建对象并注入属性
-        Employee employee = Employee.builder().id(id).status(status).build();
+        Employee employee = Employee.builder().id(id).status(status).updateTime(LocalDateTime.now()).updateUser(BaseContext.getCurrentId()).build();
         //更新数据库
         employeeMapper.update(employee);
     }
