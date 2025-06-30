@@ -16,7 +16,7 @@
                 AND d.status = #{status}
             </if>
         </where>
-        ORDER BY d.category_id DESC
+        ORDER BY d.create_time DESC
     </select>
     <delete id="deleteBatch">
         DELETE FROM dish WHERE id IN
