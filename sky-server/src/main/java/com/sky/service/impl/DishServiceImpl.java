@@ -18,6 +18,7 @@ import com.sky.vo.DishVO;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -35,6 +36,7 @@ public class DishServiceImpl implements DishService {
      * @param dishDTO
      */
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public void saveWithFlavor(DishDTO dishDTO) {
         Dish dish = new Dish();
         BeanUtils.copyProperties(dishDTO, dish);
@@ -43,8 +45,9 @@ public class DishServiceImpl implements DishService {
         Long dishId = dish.getId();//主键回填
 
         List<DishFlavor> dishFlavorList = dishDTO.getFlavors();
-        if (dishFlavorList != null && dishFlavorList.size() > 0) {
-            dishFlavorList.forEach(dishFlavor -> {dishFlavor.setDishId(dishId);});
+        if (dishFlavorList != null && !dishFlavorList.isEmpty()) {
+            dishFlavorList.forEach(dishFlavor -> dishFlavor.setDishId(dishId));
+            dishFlavorMapper.insertBatch(dishFlavorList);
         }
     }
 
@@ -66,6 +69,7 @@ public class DishServiceImpl implements DishService {
      * @param ids
      */
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public void deleteBatch(List<Long> ids) {
         //在售的菜品不能删除
         Integer count = dishMapper.countOnSale(ids);
@@ -106,6 +110,7 @@ public class DishServiceImpl implements DishService {
      * @param dishDTO
      */
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public void updateWithFlavor(DishDTO dishDTO) {
         Long dishId = dishDTO.getId();
         //删除原先的口味信息
