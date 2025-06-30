@@ -66,4 +66,19 @@ public interface DishMapper {
      * @return
      */
     Integer countOnSale(List<Long> ids);
+
+    /**
+     * 更新菜品
+     * @param dish
+     */
+    @AutoFill(OperationType.UPDATE)
+    void update(Dish dish);
+
+    /**
+     * 根据分类id查询菜品
+     * @param categoryId
+     * @return
+     */
+    @Select("SELECT * FROM dish WHERE category_id = #{categoryId}")
+    List<Dish> getByCategoryId(Long categoryId);
 }
