@@ -123,8 +123,8 @@ public class DishServiceImpl implements DishService {
         List<DishFlavor> dishFlavors = dishDTO.getFlavors();
         if (dishFlavors != null && dishFlavors.size() > 0) {
             dishFlavors.forEach(dishFlavor -> {dishFlavor.setDishId(dishId);});
+            dishFlavorMapper.insertBatch(dishFlavors);
         }
-        dishFlavorMapper.insertBatch(dishFlavors);
     }
 
     /**
