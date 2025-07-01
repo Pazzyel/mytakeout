@@ -3,6 +3,7 @@ package com.sky.service.impl;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
 import com.sky.constant.MessageConstant;
+import com.sky.constant.StatusConstant;
 import com.sky.dto.DishDTO;
 import com.sky.dto.DishPageQueryDTO;
 import com.sky.entity.Dish;
@@ -20,6 +21,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -134,7 +136,8 @@ public class DishServiceImpl implements DishService {
      */
     @Override
     public List<Dish> getByCategoryId(Long categoryId) {
-        return dishMapper.getByCategoryId(categoryId);
+        //return dishMapper.getByCategoryId(categoryId);
+        return dishMapper.list(Dish.builder().categoryId(categoryId).status(StatusConstant.ENABLE).build());
     }
 
     /**
@@ -146,5 +149,26 @@ public class DishServiceImpl implements DishService {
     public void startOrStop(Integer status, Long id) {
         Dish dish = Dish.builder().id(id).status(status).build();
         dishMapper.update(dish);
+    }
+
+    /**
+     * 根据分类id查询菜品
+     * @param dish
+     * @return
+     */
+    @Override
+    public List<DishVO> listWithFlavor(Dish dish) {
+        List<Dish> dishes = dishMapper.list(dish);
+        List<DishVO> dishVOList = new ArrayList<>(dishes.size());
+
+        for (Dish d : dishes) {
+            DishVO dishVO = new DishVO();
+            BeanUtils.copyProperties(d, dishVO);
+            //还要有对应的口味信息
+            List<DishFlavor> dishFlavors = dishFlavorMapper.getByDishId(d.getId());
+            dishVO.setFlavors(dishFlavors);
+            dishVOList.add(dishVO);
+        }
+        return dishVOList;
     }
 }

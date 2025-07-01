@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController("userShopController")//因为用户端也有一个ShopController，不写名字会有bean冲突
 @RequestMapping("/user/shop")
 @Slf4j
-@Api(tags = "店铺相关接口")
+@Api(tags = "C端-店铺相关接口")
 public class ShopController {
 
     private static final String KEY = "SHOP_STATUS";

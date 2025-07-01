@@ -41,4 +41,14 @@
         </set>
         WHERE id = #{id}
     </update>
+
+    <select id="list" parameterType="com.sky.entity.Setmeal" resultType="com.sky.entity.Setmeal">
+        SELECT * FROM setmeal
+        <where>
+            <if test="categoryId != null">AND category_id = #{categoryId}</if>
+            <if test="name != null and name != ''">AND name LIKE CONCAT('%',#{name},'%')</if>
+            <if test="status != null">AND status = #{status}</if>
+        </where>
+        ORDER BY create_time DESC
+    </select>
 </mapper>
