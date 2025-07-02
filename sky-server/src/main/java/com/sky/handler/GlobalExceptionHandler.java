@@ -42,6 +42,7 @@ public class GlobalExceptionHandler {
             String errmsg = username + MessageConstant.ALREADY_EXISTS;
             return Result.error(errmsg);
         } else {
+            ex.printStackTrace();
             //不是重复用户名错误，返回未知错误
             return Result.error(MessageConstant.UNKNOWN_ERROR);
         }

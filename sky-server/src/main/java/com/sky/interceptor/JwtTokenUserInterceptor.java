@@ -29,12 +29,12 @@ public class JwtTokenUserInterceptor implements HandlerInterceptor {
      */
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
         //判断当前请求是不是Controller请求
-        if(handler instanceof HandlerMethod) {
+        if(!(handler instanceof HandlerMethod)) {
             return true;//静态请求直接放行
         }
 
         //获取登录token
-        String token = request.getParameter(jwtProperties.getUserTokenName());
+        String token = request.getHeader(jwtProperties.getUserTokenName());
         //校验Jwt
         try{
             log.info("jwt校验: {}", token);
