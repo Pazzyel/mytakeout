@@ -1,25 +1,25 @@
 package com.sky.service.impl;
 
+import com.alibaba.fastjson.JSONObject;
 import com.sky.constant.MessageConstant;
 import com.sky.context.BaseContext;
+import com.sky.dto.OrdersPaymentDTO;
 import com.sky.dto.OrdersSubmitDTO;
-import com.sky.entity.AddressBook;
-import com.sky.entity.OrderDetail;
-import com.sky.entity.Orders;
-import com.sky.entity.ShoppingCart;
+import com.sky.entity.*;
 import com.sky.exception.AddressBookBusinessException;
+import com.sky.exception.OrderBusinessException;
 import com.sky.exception.ShoppingCartBusinessException;
-import com.sky.mapper.AddressBookMapper;
-import com.sky.mapper.OrderDetailMapper;
-import com.sky.mapper.OrderMapper;
-import com.sky.mapper.ShoppingCartMapper;
+import com.sky.mapper.*;
 import com.sky.service.OrderService;
+import com.sky.utils.WeChatPayUtil;
+import com.sky.vo.OrderPaymentVO;
 import com.sky.vo.OrderSubmitVO;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -34,6 +34,11 @@ public class OrderServiceImpl implements OrderService {
     private AddressBookMapper addressBookMapper;
     @Autowired
     private ShoppingCartMapper shoppingCartMapper;
+    @Autowired
+    private UserMapper userMapper;
+    @Autowired
+    private WeChatPayUtil weChatPayUtil;
+
     /**
      * 用户下单
      * @param ordersSubmitDTO
@@ -86,5 +91,50 @@ public class OrderServiceImpl implements OrderService {
         return OrderSubmitVO.builder().id(orders.getId())
                 .orderNumber(orders.getNumber()).orderAmount(orders.getAmount())
                 .orderTime(orders.getOrderTime()).build();
+    }
+
+    /**
+     * 订单支付
+     * @param ordersPaymentDTO
+     * @return
+     */
+    @Override
+    public OrderPaymentVO payment(OrdersPaymentDTO ordersPaymentDTO) throws Exception {
+        Long userId = BaseContext.getCurrentId();
+        User user = userMapper.getById(userId);
+
+        //调用微信支付接口获得结果
+        JSONObject jsonObject = weChatPayUtil.pay(
+                ordersPaymentDTO.getOrderNumber(),
+                new BigDecimal(0.01),
+                "苍穹外卖订单",
+                user.getOpenid());
+
+        //如果重复支付订单，抛出异常
+        if(jsonObject.get("code") != null && jsonObject.get("code").equals("ORDERPAID")){
+            throw new OrderBusinessException("订单已支付");
+        }
+
+        //构建返回对象
+        OrderPaymentVO orderPaymentVO = jsonObject.toJavaObject(OrderPaymentVO.class);
+        orderPaymentVO.setPackageStr(jsonObject.getString("package"));
+        return orderPaymentVO;
+    }
+
+    /**
+     * 支付成功修改订单状态，真实情况下是接收到微信的支付成功信息后回调
+     * @param outTradeNo
+     */
+    @Override
+    public void paySuccess(String outTradeNo) {
+        Long userId = BaseContext.getCurrentId();
+        Orders queryOrder = orderMapper.getByNumberAndUserId(outTradeNo, userId);
+        //更新订单状态，支付状态，结账时间
+        Orders order = Orders.builder()
+                .id(queryOrder.getId())
+                .status(Orders.TO_BE_CONFIRMED)
+                .payStatus(Orders.PAID)
+                .checkoutTime(LocalDateTime.now()).build();
+        orderMapper.update(order);
     }
 }
