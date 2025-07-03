@@ -15,4 +15,14 @@
         </set>
         WHERE id = #{id}
     </update>
+
+    <select id="list" parameterType="com.sky.entity.Orders" resultType="com.sky.entity.Orders">
+        SELECT * FROM orders
+        <where>
+            <if test="id != null">AND id = #{id}</if>
+            <if test="status != null">AND status = #{status}</if>
+            <if test="userId != null">AND user_id = #{userId}</if>
+        </where>
+        ORDER BY order_time DESC
+    </select>
 </mapper>

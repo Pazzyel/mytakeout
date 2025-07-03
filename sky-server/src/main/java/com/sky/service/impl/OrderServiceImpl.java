@@ -1,8 +1,11 @@
 package com.sky.service.impl;
 
 import com.alibaba.fastjson.JSONObject;
+import com.github.pagehelper.Page;
+import com.github.pagehelper.PageHelper;
 import com.sky.constant.MessageConstant;
 import com.sky.context.BaseContext;
+import com.sky.dto.OrdersPageQueryDTO;
 import com.sky.dto.OrdersPaymentDTO;
 import com.sky.dto.OrdersSubmitDTO;
 import com.sky.entity.*;
@@ -10,12 +13,16 @@ import com.sky.exception.AddressBookBusinessException;
 import com.sky.exception.OrderBusinessException;
 import com.sky.exception.ShoppingCartBusinessException;
 import com.sky.mapper.*;
+import com.sky.result.PageResult;
 import com.sky.service.OrderService;
 import com.sky.utils.WeChatPayUtil;
 import com.sky.vo.OrderPaymentVO;
 import com.sky.vo.OrderSubmitVO;
+import com.sky.vo.OrderVO;
+import org.springframework.aop.framework.AopContext;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cglib.proxy.Proxy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -38,6 +45,8 @@ public class OrderServiceImpl implements OrderService {
     private UserMapper userMapper;
     @Autowired
     private WeChatPayUtil weChatPayUtil;
+
+    private OrderService thisProxy;
 
     /**
      * 用户下单
@@ -136,5 +145,76 @@ public class OrderServiceImpl implements OrderService {
                 .payStatus(Orders.PAID)
                 .checkoutTime(LocalDateTime.now()).build();
         orderMapper.update(order);
+    }
+
+    /**
+     * 历史订单分页查询
+     * @param ordersPageQueryDTO
+     * @return
+     */
+    @Override
+    public PageResult pageQuery(OrdersPageQueryDTO ordersPageQueryDTO) {
+        PageHelper.startPage(ordersPageQueryDTO.getPage(),ordersPageQueryDTO.getPageSize());
+        Page<Orders> page = orderMapper.list(Orders.builder()
+                .userId(BaseContext.getCurrentId()).status(ordersPageQueryDTO.getStatus()).build());
+
+        List<Orders> orders = page.getResult();
+        List<OrderVO> vo = new ArrayList<>(orders.size());
+        //查询对应订单细节
+        for(Orders order : orders){
+            OrderVO orderVO = new OrderVO();
+            BeanUtils.copyProperties(order, orderVO);
+            List<OrderDetail> orderDetailList = orderDetailMapper.getByOrderId(order.getId());
+            orderVO.setOrderDetailList(orderDetailList);
+            vo.add(orderVO);
+        }
+
+        return new PageResult(page.getTotal(),vo);
+    }
+
+    /**
+     * 获取订单详情
+     * @param id
+     * @return
+     */
+    @Override
+    public OrderVO getById(Long id) {
+        Orders orders = orderMapper.getById(id);
+        List<OrderDetail> orderDetailList = orderDetailMapper.getByOrderId(id);
+        OrderVO orderVO = new OrderVO();
+        BeanUtils.copyProperties(orders, orderVO);
+        orderVO.setOrderDetailList(orderDetailList);
+        return orderVO;
+    }
+
+    /**
+     * 取消订单
+     * @param id
+     */
+    @Override
+    public void cancel(Long id) {
+        Orders orders = Orders.builder().id(id).status(Orders.CANCELLED).build();
+        orderMapper.update(orders);
+    }
+
+    /**
+     * 再来一单
+     * @param id
+     */
+    @Override
+    public void repetition(Long id) {
+        Orders orders = orderMapper.getById(id);
+        orders.setNumber(String.valueOf(System.currentTimeMillis()));
+        orders.setStatus(Orders.PENDING_PAYMENT);
+        orders.setOrderTime(LocalDateTime.now());
+        orders.setPayStatus(Orders.UN_PAID);
+        orders.setId(null);//新的订单应该由数据库注入id
+        //只改变以上几个字段
+        orderMapper.insert(orders);
+        Long newOrderId = orders.getId();
+        //保存订单详情信息
+        List<OrderDetail> list = orderDetailMapper.getByOrderId(id);
+        list.forEach(orderDetail -> orderDetail.setOrderId(newOrderId));
+        orderDetailMapper.insertBatch(list);
     }
 }
