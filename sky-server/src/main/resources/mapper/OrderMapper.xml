@@ -16,12 +16,15 @@
         WHERE id = #{id}
     </update>
 
-    <select id="list" parameterType="com.sky.entity.Orders" resultType="com.sky.entity.Orders">
+    <select id="list" parameterType="com.sky.dto.OrdersPageQueryDTO" resultType="com.sky.entity.Orders">
         SELECT * FROM orders
         <where>
-            <if test="id != null">AND id = #{id}</if>
             <if test="status != null">AND status = #{status}</if>
             <if test="userId != null">AND user_id = #{userId}</if>
+            <if test="beginTime != null">AND order_time &gt;= #{beginTime}</if>
+            <if test="endTime != null">AND order_time &lt;= #{endTime}</if>
+            <if test="number != null and number != ''">AND number = #{number}</if>
+            <if test="phone != null and phone != ''">AND phone = #{phone}</if>
         </where>
         ORDER BY order_time DESC
     </select>

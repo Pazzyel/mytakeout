@@ -155,8 +155,7 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public PageResult pageQuery(OrdersPageQueryDTO ordersPageQueryDTO) {
         PageHelper.startPage(ordersPageQueryDTO.getPage(),ordersPageQueryDTO.getPageSize());
-        Page<Orders> page = orderMapper.list(Orders.builder()
-                .userId(BaseContext.getCurrentId()).status(ordersPageQueryDTO.getStatus()).build());
+        Page<Orders> page = orderMapper.list(ordersPageQueryDTO);
 
         List<Orders> orders = page.getResult();
         List<OrderVO> vo = new ArrayList<>(orders.size());
