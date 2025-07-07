@@ -18,3 +18,5 @@ public class SkyApplication {
         log.info("server started");
     }
 }
+
+//注意，对应<foreach>标签拼接的内容，内容为空时触发sql语法错误异常

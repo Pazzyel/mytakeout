@@ -206,19 +206,18 @@ public class OrderServiceImpl implements OrderService {
      */
     @Override
     public void repetition(Long id) {
-        Orders orders = orderMapper.getById(id);
-        orders.setNumber(String.valueOf(System.currentTimeMillis()));
-        orders.setStatus(Orders.PENDING_PAYMENT);
-        orders.setOrderTime(LocalDateTime.now());
-        orders.setPayStatus(Orders.UN_PAID);
-        orders.setId(null);//新的订单应该由数据库注入id
-        //只改变以上几个字段
-        orderMapper.insert(orders);
-        Long newOrderId = orders.getId();
-        //保存订单详情信息
+        //再来一单是把商品重新加入购物车
         List<OrderDetail> list = orderDetailMapper.getByOrderId(id);
-        list.forEach(orderDetail -> orderDetail.setOrderId(newOrderId));
-        orderDetailMapper.insertBatch(list);
+        List<ShoppingCart> shoppingCarts = new ArrayList<>(list.size());
+        Long userId = BaseContext.getCurrentId();
+        for(OrderDetail orderDetail : list){
+            ShoppingCart shoppingCart = new ShoppingCart();
+            BeanUtils.copyProperties(orderDetail, shoppingCart);
+            shoppingCart.setUserId(userId);
+            shoppingCart.setCreateTime(LocalDateTime.now());
+            shoppingCarts.add(shoppingCart);
+        }
+        shoppingCartMapper.insertBatch(shoppingCarts);
     }
 
     /**
