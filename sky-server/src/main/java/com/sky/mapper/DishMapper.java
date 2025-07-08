@@ -11,6 +11,7 @@ import io.swagger.models.auth.In;
 import org.apache.ibatis.annotations.*;
 
 import java.util.List;
+import java.util.Map;
 
 @Mapper
 public interface DishMapper {
@@ -88,4 +89,11 @@ public interface DishMapper {
      * @return
      */
     List<Dish> list(Dish dish);
+
+    /**
+     * 根据条件动态查询
+     * @param map
+     * @return
+     */
+    Integer countByMap(Map<String, Object> map);
 }
