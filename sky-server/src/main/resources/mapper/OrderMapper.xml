@@ -46,4 +46,13 @@
             <if test="endTime != null">AND order_time &lt;= #{endTime}</if>
         </where>
     </select>
+
+    <select id="getSalesTop10" resultType="com.sky.dto.GoodsSalesDTO">
+        <!--JOIN中如果左表一条记录对应右表多条记录，左表记录会重复-->
+        SELECT od.name AS name, SUM(od.number) AS number FROM order_detail od JOIN orders o ON od.order_id = o.id
+        WHERE o.status = 5
+        <if test="beginTime != null">AND o.order_time &gt;= #{beginTime}</if>
+        <if test="endTime != null">AND o.order_time &lt;= #{endTime}</if>
+        GROUP BY name ORDER BY number DESC LIMIT 0,10
+    </select>
 </mapper>
