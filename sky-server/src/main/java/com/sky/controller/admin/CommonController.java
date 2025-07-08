@@ -61,6 +61,8 @@ public class CommonController {
             if (file.exists()) {
                 response.setContentType(contentType);
                 Files.copy(file.toPath(), response.getOutputStream());
+                response.getOutputStream().flush();//关闭资源
+                response.getOutputStream().close();
             } else {
                 response.setStatus(HttpServletResponse.SC_NOT_FOUND);
             }

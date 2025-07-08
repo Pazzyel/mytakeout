@@ -87,4 +87,15 @@ public class ReportController {
         SalesTop10ReportVO top10ReportVO = reportService.getSalesTop10(begin,end);
         return Result.success(top10ReportVO);
     }
+
+    /**
+     * 导出最近30天的运营数据
+     * @param response
+     */
+    @GetMapping("/export")
+    @ApiOperation("导出最近30天的运营数据")
+    public void export(HttpServletResponse response) {
+        log.info("导出最近30天的运营数据");
+        reportService.exportBusinessData(response);
+    }
 }
