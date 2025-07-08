@@ -45,6 +45,11 @@ public class CommonController {
         return Result.error(MessageConstant.UPLOAD_FAILED);
     }
 
+    /**
+     * 请求文件资源
+     * @param filename
+     * @param response
+     */
     @GetMapping("/uploads/{filename}")
     public void getFile(@PathVariable String filename, HttpServletResponse response) {
         try {
