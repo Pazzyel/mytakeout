@@ -28,4 +28,13 @@
         </where>
         ORDER BY order_time DESC
     </select>
+
+    <select id="sumAmountByMap" parameterType="java.util.Map" resultType="java.lang.Double">
+        SELECT COUNT(amount) FROM orders
+        <where>
+            <if test="status != null">AND status = #{status}</if>
+            <if test="beginTime != null">AND order_time &gt;= #{beginTime}</if>
+            <if test="endTime != null">AND order_time &lt;= #{endTime}</if>
+        </where>
+    </select>
 </mapper>
