@@ -30,7 +30,7 @@
     </select>
 
     <select id="sumAmountByMap" parameterType="java.util.Map" resultType="java.lang.Double">
-        SELECT COUNT(amount) FROM orders
+        SELECT SUM(amount) FROM orders
         <where>
             <if test="status != null">AND status = #{status}</if>
             <if test="beginTime != null">AND order_time &gt;= #{beginTime}</if>
